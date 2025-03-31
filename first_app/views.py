@@ -1,6 +1,5 @@
 from django.http import HttpResponse
 
-def django_greetings(request) -> HttpResponse:
-    return HttpResponse(
-        "<h1>Hello, world!</h1>"
-    )
+def hello_view(request):
+    your_name = "JOHN"
+    return HttpResponse(f"<h1>Hello, {your_name}</h1>")
