@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # 3-rd party
 
     # local
+    'rest_framework',
     'first_app.apps.FirstAppConfig',
 
 ]
