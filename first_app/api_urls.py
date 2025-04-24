@@ -12,3 +12,11 @@ urlpatterns = [
     path('tasks/<int:pk>/', TaskDetailAPIView.as_view(), name='task-detail'),
     path('tasks/stats/', TaskStatsAPIView.as_view(), name='task-stats'),
 ]
+
+
+from .views import SubTaskListCreateView, SubTaskDetailUpdateDeleteView
+
+urlpatterns += [
+    path('subtasks/', SubTaskListCreateView.as_view(), name='subtask-list-create'),
+    path('subtasks/<int:pk>/', SubTaskDetailUpdateDeleteView.as_view(), name='subtask-detail-update-delete'),
+]

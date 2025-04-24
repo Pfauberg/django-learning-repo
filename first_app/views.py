@@ -38,3 +38,54 @@ class TaskStatsAPIView(APIView):
             "tasks_by_status": by_status,
             "overdue_tasks": overdue
         })
+
+
+from rest_framework import status
+from .models import SubTask
+from .serializers import SubTaskCreateSerializer
+
+
+class SubTaskListCreateView(APIView):
+    def get(self, request):
+        subtasks = SubTask.objects.all()
+        serializer = SubTaskCreateSerializer(subtasks, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = SubTaskCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubTaskDetailUpdateDeleteView(APIView):
+    def get_object(self, pk):
+        try:
+            return SubTask.objects.get(pk=pk)
+        except SubTask.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        subtask = self.get_object(pk)
+        if not subtask:
+            return Response({"error": "Not found"}, status=404)
+        serializer = SubTaskCreateSerializer(subtask)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        subtask = self.get_object(pk)
+        if not subtask:
+            return Response({"error": "Not found"}, status=404)
+        serializer = SubTaskCreateSerializer(subtask, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        subtask = self.get_object(pk)
+        if not subtask:
+            return Response({"error": "Not found"}, status=404)
+        subtask.delete()
+        return Response(status=204)
