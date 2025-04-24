@@ -40,23 +40,25 @@ class TaskStatsAPIView(APIView):
         })
 
 
-from rest_framework import status
+from rest_framework import generics
 from .models import SubTask
 from .serializers import SubTaskCreateSerializer
 
 
-class SubTaskListCreateView(APIView):
-    def get(self, request):
-        subtasks = SubTask.objects.all()
-        serializer = SubTaskCreateSerializer(subtasks, many=True)
-        return Response(serializer.data)
+class SubTaskListCreateView(generics.ListCreateAPIView):
+    serializer_class = SubTaskCreateSerializer
 
-    def post(self, request):
-        serializer = SubTaskCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        queryset = SubTask.objects.all().order_by('-created_at')
+        task_title = self.request.query_params.get('task')
+        status_param = self.request.query_params.get('status')
+
+        if task_title:
+            queryset = queryset.filter(task__title__icontains=task_title)
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        return queryset
 
 
 class SubTaskDetailUpdateDeleteView(APIView):
@@ -89,3 +91,30 @@ class SubTaskDetailUpdateDeleteView(APIView):
             return Response({"error": "Not found"}, status=404)
         subtask.delete()
         return Response(status=204)
+
+
+from rest_framework import generics
+from .serializers import TaskSerializer
+
+
+class TaskByWeekdayAPIView(generics.ListAPIView):
+    serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        queryset = Task.objects.all()
+        weekday_param = self.request.query_params.get('weekday')
+        if weekday_param:
+            try:
+                weekday_number = {
+                    "понедельник": 0,
+                    "вторник": 1,
+                    "среда": 2,
+                    "четверг": 3,
+                    "пятница": 4,
+                    "суббота": 5,
+                    "воскресенье": 6
+                }[weekday_param.lower()]
+                queryset = queryset.filter(deadline__week_day=weekday_number + 1)
+            except KeyError:
+                pass
+        return queryset
