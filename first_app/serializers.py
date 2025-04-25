@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Task
+from .models import Task, Category
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,3 +56,9 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         if value < timezone.now():
             raise serializers.ValidationError("Deadline cannot be in the past.")
         return value
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'is_deleted', 'deleted_at']

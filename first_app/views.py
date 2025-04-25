@@ -4,17 +4,19 @@ def hello_view(request):
     your_name = "JOHN"
     return HttpResponse(f"<h1>Hello, {your_name}</h1>")
 
-from rest_framework import generics, filters
+from rest_framework import generics, filters, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.utils import timezone
 from django.db.models import Count
-from .models import Task, SubTask
+from .models import Task, SubTask, Category
 from .serializers import (
     TaskSerializer,
     TaskCreateSerializer,
     TaskDetailSerializer,
-    SubTaskCreateSerializer
+    SubTaskCreateSerializer,
+    CategorySerializer
 )
 
 class TaskListCreateAPIView(generics.ListCreateAPIView):
@@ -77,3 +79,14 @@ class TaskByWeekdayAPIView(generics.ListAPIView):
             except KeyError:
                 pass
         return queryset
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.active_objects.all()
+    serializer_class = CategorySerializer
+
+    @action(detail=True, methods=['get'])
+    def count_tasks(self, request, pk=None):
+        category = self.get_object()
+        task_count = category.task_set.count()
+        return Response({'task_count': task_count})

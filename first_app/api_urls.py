@@ -1,12 +1,19 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from . import admin
 from .views import (
     TaskListCreateAPIView,
     TaskDetailAPIView,
     TaskStatsAPIView,
     SubTaskListCreateView,
     SubTaskDetailUpdateDeleteView,
-    TaskByWeekdayAPIView
+    TaskByWeekdayAPIView,
+    CategoryViewSet
 )
+
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='category')
 
 urlpatterns = [
     path('tasks/', TaskListCreateAPIView.as_view(), name='task-list-create'),
@@ -16,4 +23,5 @@ urlpatterns = [
 
     path('subtasks/', SubTaskListCreateView.as_view(), name='subtask-list-create'),
     path('subtasks/<int:pk>/', SubTaskDetailUpdateDeleteView.as_view(), name='subtask-detail-update-delete'),
+    path('api/', include(router.urls)),
 ]
