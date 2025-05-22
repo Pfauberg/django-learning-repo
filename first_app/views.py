@@ -19,6 +19,7 @@ from .serializers import (
     SubTaskCreateSerializer,
     CategorySerializer
 )
+from .permissions import IsOwnerOrReadOnly
 
 class TaskListCreateAPIView(generics.ListCreateAPIView):
     queryset = Task.objects.all()
@@ -29,11 +30,14 @@ class TaskListCreateAPIView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class TaskDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 
 class SubTaskListCreateView(generics.ListCreateAPIView):
@@ -44,11 +48,14 @@ class SubTaskListCreateView(generics.ListCreateAPIView):
     ordering_fields = ['created_at']
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class SubTaskDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskCreateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 
 class TaskStatsAPIView(APIView):

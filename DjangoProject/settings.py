@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # local
     'rest_framework',
     'first_app.apps.FirstAppConfig',
+    'drf_yasg',
 
 ]
 
