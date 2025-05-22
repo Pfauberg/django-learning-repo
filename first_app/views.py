@@ -4,6 +4,7 @@ def hello_view(request):
     your_name = "JOHN"
     return HttpResponse(f"<h1>Hello, {your_name}</h1>")
 
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics, filters, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -26,11 +27,13 @@ class TaskListCreateAPIView(generics.ListCreateAPIView):
     search_fields = ['title', 'description']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
+    permission_classes = [IsAuthenticated]
 
 
 class TaskDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskDetailSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class SubTaskListCreateView(generics.ListCreateAPIView):
@@ -39,11 +42,13 @@ class SubTaskListCreateView(generics.ListCreateAPIView):
     filterset_fields = ['status', 'deadline']
     search_fields = ['title', 'description']
     ordering_fields = ['created_at']
+    permission_classes = [IsAuthenticated]
 
 
 class SubTaskDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskCreateSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class TaskStatsAPIView(APIView):
@@ -56,10 +61,12 @@ class TaskStatsAPIView(APIView):
             "tasks_by_status": by_status,
             "overdue_tasks": overdue
         })
+    permission_classes = [IsAuthenticated]
 
 
 class TaskByWeekdayAPIView(generics.ListAPIView):
     serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Task.objects.all()
@@ -84,6 +91,7 @@ class TaskByWeekdayAPIView(generics.ListAPIView):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.active_objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['get'])
     def count_tasks(self, request, pk=None):
