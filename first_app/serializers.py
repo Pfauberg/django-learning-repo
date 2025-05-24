@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Task, SubTask, Category
+from django.contrib.auth import get_user_model
+import re
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -68,3 +70,46 @@ class CategoryCreateSerializer(serializers.ModelSerializer):
         if qs.exists():
             raise serializers.ValidationError("Category with this name already exists.")
         return value
+
+
+# Signup
+User = get_user_model()
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'password2')
+
+    def validate_email(self, value):
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Email уже используется.")
+        return value
+
+    def validate_username(self, value):
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("Имя пользователя уже занято.")
+        return value
+
+    def validate_password(self, value):
+        if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#$%^&+=!]{8,}$', value):
+            raise serializers.ValidationError(
+                "Пароль должен быть не менее 8 символов и содержать буквы и цифры."
+            )
+        return value
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError({"password2": "Пароли не совпадают."})
+        return data
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user

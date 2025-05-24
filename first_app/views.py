@@ -5,10 +5,11 @@ def hello_view(request):
     return HttpResponse(f"<h1>Hello, {your_name}</h1>")
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework import generics, filters, viewsets
+from rest_framework import generics, filters, viewsets, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.generics import CreateAPIView
 from django.utils import timezone
 from django.db.models import Count
 from .models import Task, SubTask, Category
@@ -20,6 +21,25 @@ from .serializers import (
     CategorySerializer
 )
 from .permissions import IsOwnerOrReadOnly
+from .serializers import RegisterSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+class RegisterView(CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class TaskListCreateAPIView(generics.ListCreateAPIView):
     queryset = Task.objects.all()
